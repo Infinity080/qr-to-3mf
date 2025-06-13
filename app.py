@@ -1,6 +1,5 @@
 from PIL import Image
 import numpy as np
-import trimesh
 import lib3mf
 import qrcode
 
