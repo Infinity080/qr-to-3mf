@@ -13,7 +13,7 @@ def link_to_png(link, output_path):
     img.save(output_path)
     return output_path
 
-def qr_to_3mf(link, output_path):
+def qr_to_3mf(link, output_path, scale = 90): # 90 mm
     image_path = "error"
     image_path = link_to_png(link, image_path)
 
@@ -29,6 +29,8 @@ def qr_to_3mf(link, output_path):
     base_z = 4.0
 
     rows, cols = height_map.shape
+
+    local_scale = scale / max(rows,cols) # adjust to be 90 mm
 
     box_vertices = [
         (0,     0,     0),
@@ -85,7 +87,12 @@ def qr_to_3mf(link, output_path):
     base_mesh.SetName("Base")
 
     for vert in base_vertices:
-        position = lib3mf.Position((float(vert[0]), float(vert[1]), float(vert[2])))
+        position = lib3mf.Position((
+            float(vert[0]) * local_scale,
+            float(vert[1]) * local_scale,
+            float(vert[2])
+        ))
+
         base_mesh.AddVertex(position)
 
     # Add triangles
@@ -103,7 +110,12 @@ def qr_to_3mf(link, output_path):
     black_mesh.SetName("Black")
 
     for vert in black_vertices:
-        position = lib3mf.Position((float(vert[0]), float(vert[1]), float(vert[2])))
+        position = lib3mf.Position((
+            float(vert[0]) * local_scale,
+            float(vert[1]) * local_scale,
+            float(vert[2])
+        ))
+
         black_mesh.AddVertex(position)
 
     for face in black_faces:
@@ -117,3 +129,4 @@ def qr_to_3mf(link, output_path):
     writer = model.QueryWriter("3mf")
     writer.WriteToFile(output_path)
 
+qr_to_3mf("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "rickroll.3mf")
