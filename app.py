@@ -7,13 +7,13 @@ def qr_to_3mf(image_path, output_path):
     image = Image.open(image_path).convert('L')  # Convert to grayscale
     image = (np.array(image) < 128)  # Convert to binary (black and white)
     
-    elevation = 3.0 # difference of height between black and white
+    elevation = 1.0 # difference of height between black and white
     height_map = image.astype(float) * elevation
 
     black_vertices = []
     black_faces = []
 
-    base_z = 1.0
+    base_z = 4.0
 
     rows, cols = height_map.shape
 
@@ -62,6 +62,11 @@ def qr_to_3mf(image_path, output_path):
     # convert to 3mf
     wrapper = lib3mf.get_wrapper()
     model = wrapper.CreateModel()
+
+    color_group = model.AddColorGroup()
+    white_color = color_group.AddColor(lib3mf.Color(255, 255, 255, 255))
+    black_color = color_group.AddColor(lib3mf.Color(0, 0, 0, 255))
+
     # white base mesh
     base_mesh = model.AddMeshObject()
     base_mesh.SetName("Base")
@@ -74,6 +79,9 @@ def qr_to_3mf(image_path, output_path):
     for face in base_faces:
         triangle = lib3mf.Triangle(Indices=(face[0], face[1], face[2]))
         base_mesh.AddTriangle(triangle)
+
+    resource_id = color_group.GetResourceID()
+    base_mesh.SetObjectLevelProperty(resource_id, white_color)
 
     model.AddBuildItem(base_mesh, wrapper.GetIdentityTransform())
 
@@ -88,6 +96,8 @@ def qr_to_3mf(image_path, output_path):
     for face in black_faces:
         triangle = lib3mf.Triangle(Indices=(face[0], face[1], face[2]))
         black_mesh.AddTriangle(triangle)
+
+    black_mesh.SetObjectLevelProperty(resource_id, black_color)
 
     model.AddBuildItem(black_mesh, wrapper.GetIdentityTransform())
 
