@@ -2,8 +2,21 @@ from PIL import Image
 import numpy as np
 import trimesh
 import lib3mf
+import qrcode
 
-def qr_to_3mf(image_path, output_path):
+def link_to_png(link, output_path):
+    qr = qrcode.QRCode()
+    qr.add_data(link)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    img.save(output_path)
+    return output_path
+
+def qr_to_3mf(link, output_path):
+    image_path = "error"
+    image_path = link_to_png(link, image_path)
+
     image = Image.open(image_path).convert('L')  # Convert to grayscale
     image = (np.array(image) < 128)  # Convert to binary (black and white)
     
@@ -104,6 +117,3 @@ def qr_to_3mf(image_path, output_path):
     writer = model.QueryWriter("3mf")
     writer.WriteToFile(output_path)
 
-
-
-qr_to_3mf("image1.png", "test_mesh3mf.3mf")
